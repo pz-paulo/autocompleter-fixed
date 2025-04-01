@@ -1,0 +1,16 @@
+*.tgz
+.git
+.github
+.rpt2_cache
+.vs
+bower.json
+changelog.md
+debug.log
+favicon.ico
+index.html
+node_modules
+npm-debug.log
+readme.md
+rollup.config.js
+tsconfig.json
+tslint.json
