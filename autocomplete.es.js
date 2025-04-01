@@ -394,6 +394,8 @@ function autocomplete(settings) {
         // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
         setTimeout(function () {
             var _a;
+            console.log("[AUTOCOMPLETER] doc.ActiveElement", doc.activeElement);
+            console.log("[AUTOCOMPLETER] container", container);
             if (doc.activeElement !== input && doc.activeElement !== container && ((_a = doc.activeElement) === null || _a === void 0 ? void 0 : _a.parentElement) !== container) {
                 clear();
             }
