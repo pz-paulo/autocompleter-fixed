@@ -399,6 +399,8 @@
             // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
             // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
             setTimeout(function () {
+                console.log("[AUTOCOMPLETER] doc.ActiveElement", doc.activeElement);
+                console.log("[AUTOCOMPLETER] container", container);
                 if (doc.activeElement !== input) {
                     clear();
                 }
