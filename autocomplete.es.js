@@ -392,13 +392,12 @@ function autocomplete(settings) {
     function blurEventHandler() {
         // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
         // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
-        // setTimeout(() => {
-        //     console.log("[AUTOCOMPLETER] doc.ActiveElement", doc.activeElement);
-        //     console.log("[AUTOCOMPLETER] container", container);
-        //     if (doc.activeElement !== input) {
-        //         clear();
-        //     }
-        // }, 200);
+        setTimeout(function () {
+            var _a;
+            if (doc.activeElement !== input && doc.activeElement !== container && ((_a = doc.activeElement) === null || _a === void 0 ? void 0 : _a.parentElement) !== container) {
+                clear();
+            }
+        }, 200);
     }
     function manualFetch() {
         startFetch(input.value, 3 /* Manual */, input.selectionStart || 0);
