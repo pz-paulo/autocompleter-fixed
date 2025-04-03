@@ -303,7 +303,7 @@
         }
         function handleArrowAndEscapeKeys(ev, key) {
             var containerIsDisplayed = containerDisplayed();
-            if (key === 'Escape') {
+            if (key === 'Escape' || key === 'Tab') {
                 clear();
             }
             else {
@@ -313,10 +313,10 @@
                 key === 'ArrowUp'
                     ? selectPreviousSuggestion()
                     : selectNextSuggestion();
-            }
-            ev.preventDefault();
-            if (containerIsDisplayed) {
-                ev.stopPropagation();
+                ev.preventDefault();
+                if (containerIsDisplayed) {
+                    ev.stopPropagation();
+                }
             }
         }
         function handleEnterKey(ev) {
@@ -343,6 +343,7 @@
                 case 'ArrowUp':
                 case 'ArrowDown':
                 case 'Escape':
+                case 'Tab':
                     handleArrowAndEscapeKeys(ev, key);
                     break;
                 case 'Enter':
@@ -395,15 +396,6 @@
                 fetch: function () { return fetch(2 /* Mouse */); }
             });
         }
-        function blurEventHandler() {
-            // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
-            // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
-            setTimeout(function () {
-                if (doc.activeElement !== input) {
-                    clear();
-                }
-            }, 200);
-        }
         function manualFetch() {
             startFetch(input.value, 3 /* Manual */, input.selectionStart || 0);
         }
@@ -430,7 +422,6 @@
             input.removeEventListener('click', clickEventHandler);
             input.removeEventListener('keydown', keydownEventHandler);
             input.removeEventListener('input', inputEventHandler);
-            input.removeEventListener('blur', blurEventHandler);
             window.removeEventListener('resize', resizeEventHandler);
             doc.removeEventListener('scroll', scrollEventHandler, true);
             input.removeAttribute('role');
@@ -449,7 +440,6 @@
         input.addEventListener('click', clickEventHandler);
         input.addEventListener('keydown', keydownEventHandler);
         input.addEventListener('input', inputEventHandler);
-        input.addEventListener('blur', blurEventHandler);
         input.addEventListener('focus', focusEventHandler);
         window.addEventListener('resize', resizeEventHandler);
         doc.addEventListener('scroll', scrollEventHandler, true);
