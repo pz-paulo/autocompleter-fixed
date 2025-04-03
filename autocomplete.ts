@@ -499,6 +499,8 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     function handleArrowUpAndDownKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown')
     {
         console.log(`[AUTOCOMPLETE] key pressed: ${key} eventKey: ${ev.key}`);
+        console.log(`[AUTOCOMPLETE] items:`, items);
+        console.log(`[AUTOCOMPLETE] selected:`, selected);
 
         const containerIsDisplayed = containerDisplayed();
 

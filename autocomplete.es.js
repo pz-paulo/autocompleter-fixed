@@ -297,6 +297,8 @@ function autocomplete(settings) {
     }
     function handleArrowUpAndDownKeys(ev, key) {
         console.log("[AUTOCOMPLETE] key pressed: " + key + " eventKey: " + ev.key);
+        console.log("[AUTOCOMPLETE] items:", items);
+        console.log("[AUTOCOMPLETE] selected:", selected);
         var containerIsDisplayed = containerDisplayed();
         if (!containerIsDisplayed || items.length < 1) {
             return;
