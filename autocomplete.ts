@@ -199,7 +199,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     input.setAttribute('aria-autocomplete', 'list');
     input.setAttribute('aria-controls', container.id);
     input.setAttribute('aria-owns', container.id);
-    // input.setAttribute('aria-activedescendant', '');
+    input.setAttribute('aria-activedescendant', '');
     input.setAttribute('aria-haspopup', 'listbox');
 
     // IOS implementation for fixed positioning has many bugs, so we will use absolute positioning
@@ -257,7 +257,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         items = [];
         inputValue = '';
         selected = undefined;
-        // input.setAttribute('aria-activedescendant', '');
+        input.setAttribute('aria-activedescendant', '');
         input.setAttribute('aria-expanded', 'false');
         detach();
     }
@@ -320,7 +320,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     function update() {
 
         container.textContent = '';
-        // input.setAttribute('aria-activedescendant', '');
+        input.setAttribute('aria-activedescendant', '');
 
         // function for rendering autocomplete suggestions
         let render = function (item: T, _: string, __: number): HTMLDivElement | undefined {
@@ -496,26 +496,24 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         }
     }
 
-    function handleArrowAndEscapeKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown' | 'Escape' | 'Tab') {
+    function handleArrowUpAndDownKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown')
+    {
+        console.log(`[AUTOCOMPLETE] key pressed: ${key} eventKey: ${ev.key}`);
+
         const containerIsDisplayed = containerDisplayed();
 
-        if (key === 'Escape' || key === 'Tab') {
-            clear();
-        } else {
-            
-            if (!containerIsDisplayed || items.length < 1) {
-                return;
-            }
+        if (!containerIsDisplayed || items.length < 1) {
+            return;
+        }
 
-            key === 'ArrowUp'
-                ? selectPreviousSuggestion()
-                : selectNextSuggestion();
+        key === 'ArrowUp'
+            ? selectPreviousSuggestion()
+            : selectNextSuggestion();
 
-            ev.preventDefault();
+        ev.preventDefault();
 
-            if (containerIsDisplayed) {
-                ev.stopPropagation();
-            }
+        if (containerIsDisplayed) {
+            ev.stopPropagation();
         }
     }
 
@@ -544,9 +542,11 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         switch (key) {
             case 'ArrowUp':
             case 'ArrowDown':
+                handleArrowUpAndDownKeys(ev, key);
+                break;
             case 'Escape':
             case 'Tab':
-                handleArrowAndEscapeKeys(ev, key);
+                clear();
                 break;
             case 'Enter':
                 handleEnterKey(ev);

@@ -40,7 +40,7 @@ function autocomplete(settings) {
     input.setAttribute('aria-autocomplete', 'list');
     input.setAttribute('aria-controls', container.id);
     input.setAttribute('aria-owns', container.id);
-    // input.setAttribute('aria-activedescendant', '');
+    input.setAttribute('aria-activedescendant', '');
     input.setAttribute('aria-haspopup', 'listbox');
     // IOS implementation for fixed positioning has many bugs, so we will use absolute positioning
     containerStyle.position = 'absolute';
@@ -90,7 +90,7 @@ function autocomplete(settings) {
         items = [];
         inputValue = '';
         selected = undefined;
-        // input.setAttribute('aria-activedescendant', '');
+        input.setAttribute('aria-activedescendant', '');
         input.setAttribute('aria-expanded', 'false');
         detach();
     }
@@ -138,7 +138,7 @@ function autocomplete(settings) {
      */
     function update() {
         container.textContent = '';
-        // input.setAttribute('aria-activedescendant', '');
+        input.setAttribute('aria-activedescendant', '');
         // function for rendering autocomplete suggestions
         var render = function (item, _, __) {
             var itemElement = doc.createElement('div');
@@ -295,22 +295,18 @@ function autocomplete(settings) {
             input.removeAttribute('aria-activedescendant');
         }
     }
-    function handleArrowAndEscapeKeys(ev, key) {
+    function handleArrowUpAndDownKeys(ev, key) {
+        console.log("[AUTOCOMPLETE] key pressed: " + key + " eventKey: " + ev.key);
         var containerIsDisplayed = containerDisplayed();
-        if (key === 'Escape' || key === 'Tab') {
-            clear();
+        if (!containerIsDisplayed || items.length < 1) {
+            return;
         }
-        else {
-            if (!containerIsDisplayed || items.length < 1) {
-                return;
-            }
-            key === 'ArrowUp'
-                ? selectPreviousSuggestion()
-                : selectNextSuggestion();
-            ev.preventDefault();
-            if (containerIsDisplayed) {
-                ev.stopPropagation();
-            }
+        key === 'ArrowUp'
+            ? selectPreviousSuggestion()
+            : selectNextSuggestion();
+        ev.preventDefault();
+        if (containerIsDisplayed) {
+            ev.stopPropagation();
         }
     }
     function handleEnterKey(ev) {
@@ -336,9 +332,11 @@ function autocomplete(settings) {
         switch (key) {
             case 'ArrowUp':
             case 'ArrowDown':
+                handleArrowUpAndDownKeys(ev, key);
+                break;
             case 'Escape':
             case 'Tab':
-                handleArrowAndEscapeKeys(ev, key);
+                clear();
                 break;
             case 'Enter':
                 handleEnterKey(ev);
