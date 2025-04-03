@@ -199,7 +199,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     input.setAttribute('aria-autocomplete', 'list');
     input.setAttribute('aria-controls', container.id);
     input.setAttribute('aria-owns', container.id);
-    input.setAttribute('aria-activedescendant', '');
+    // input.setAttribute('aria-activedescendant', '');
     input.setAttribute('aria-haspopup', 'listbox');
 
     // IOS implementation for fixed positioning has many bugs, so we will use absolute positioning
@@ -257,7 +257,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         items = [];
         inputValue = '';
         selected = undefined;
-        input.setAttribute('aria-activedescendant', '');
+        // input.setAttribute('aria-activedescendant', '');
         input.setAttribute('aria-expanded', 'false');
         detach();
     }
@@ -320,7 +320,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     function update() {
 
         container.textContent = '';
-        input.setAttribute('aria-activedescendant', '');
+        // input.setAttribute('aria-activedescendant', '');
 
         // function for rendering autocomplete suggestions
         let render = function (item: T, _: string, __: number): HTMLDivElement | undefined {
@@ -608,9 +608,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
         // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
         setTimeout(() => {
-            console.log("[AUTOCOMPLETER] doc.ActiveElement", doc.activeElement);
-            console.log("[AUTOCOMPLETER] container", container);
-            if (doc.activeElement !== input && doc.activeElement !== container && doc.activeElement?.parentElement !== container) {
+            if (doc.activeElement !== input) {
                 clear();
             }
         }, 200);
