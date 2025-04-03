@@ -319,6 +319,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
      */
     function update() {
 
+        console.log("[AUTOCOMPLETE] update suggestions div");
         container.textContent = '';
         input.setAttribute('aria-activedescendant', '');
 
@@ -345,6 +346,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         const fragment = doc.createDocumentFragment();
         let prevGroup = uid();
 
+        console.log(`[AUTOCOMPLETE] selected`, selected);
         items.forEach(function (item: T, index: number): void {
             if (item.group && item.group !== prevGroup) {
                 prevGroup = item.group;
@@ -369,6 +371,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
                     ev.preventDefault();
                     ev.stopPropagation();
                 });
+                console.log(`[AUTOCOMPLETE] item is selected ${item === selected}`, item);
                 if (item === selected) {
                     div.className += ' selected';
                     div.setAttribute('aria-selected', 'true');
@@ -498,9 +501,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
 
     function handleArrowUpAndDownKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown')
     {
-        console.log(`[AUTOCOMPLETE] key pressed: ${key} eventKey: ${ev.key}`);
-        console.log(`[AUTOCOMPLETE] items:`, items);
-        console.log(`[AUTOCOMPLETE] selected:`, selected);
+
 
         const containerIsDisplayed = containerDisplayed();
 
@@ -517,6 +518,10 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         if (containerIsDisplayed) {
             ev.stopPropagation();
         }
+
+        console.log(`[AUTOCOMPLETE] key pressed: ${key} eventKey: ${ev.key}`);
+        console.log(`[AUTOCOMPLETE] items:`, items);
+        console.log(`[AUTOCOMPLETE] selected:`, selected);
     }
 
     function handleEnterKey(ev: KeyboardEvent) {

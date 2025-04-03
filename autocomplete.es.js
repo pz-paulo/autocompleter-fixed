@@ -137,6 +137,7 @@ function autocomplete(settings) {
      * Redraw the autocomplete div element with suggestions
      */
     function update() {
+        console.log("[AUTOCOMPLETE] update suggestions div");
         container.textContent = '';
         input.setAttribute('aria-activedescendant', '');
         // function for rendering autocomplete suggestions
@@ -159,6 +160,7 @@ function autocomplete(settings) {
         }
         var fragment = doc.createDocumentFragment();
         var prevGroup = uid();
+        console.log("[AUTOCOMPLETE] selected", selected);
         items.forEach(function (item, index) {
             if (item.group && item.group !== prevGroup) {
                 prevGroup = item.group;
@@ -184,6 +186,7 @@ function autocomplete(settings) {
                     ev.preventDefault();
                     ev.stopPropagation();
                 });
+                console.log("[AUTOCOMPLETE] item is selected " + (item === selected), item);
                 if (item === selected) {
                     div.className += ' selected';
                     div.setAttribute('aria-selected', 'true');
@@ -296,9 +299,6 @@ function autocomplete(settings) {
         }
     }
     function handleArrowUpAndDownKeys(ev, key) {
-        console.log("[AUTOCOMPLETE] key pressed: " + key + " eventKey: " + ev.key);
-        console.log("[AUTOCOMPLETE] items:", items);
-        console.log("[AUTOCOMPLETE] selected:", selected);
         var containerIsDisplayed = containerDisplayed();
         if (!containerIsDisplayed || items.length < 1) {
             return;
@@ -310,6 +310,9 @@ function autocomplete(settings) {
         if (containerIsDisplayed) {
             ev.stopPropagation();
         }
+        console.log("[AUTOCOMPLETE] key pressed: " + key + " eventKey: " + ev.key);
+        console.log("[AUTOCOMPLETE] items:", items);
+        console.log("[AUTOCOMPLETE] selected:", selected);
     }
     function handleEnterKey(ev) {
         if (selected) {
