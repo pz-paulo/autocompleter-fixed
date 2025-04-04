@@ -1,8 +1,8 @@
 /**
- * Copyright (c) 2016 Denis Taran
+ * Copyright (c) 2016 Denys Krasnoshchok
  * 
  * Homepage: https://smartscheduling.com/en/documentation/autocomplete
- * Source: https://github.com/denis-taran/autocomplete
+ * Source: https://github.com/kraaden/autocomplete
  * 
  * MIT License
  */
@@ -15,18 +15,6 @@ export const enum EventTrigger {
      * Fetch is triggered manually by calling `fetch` function returned in `AutocompleteResult`
      */
     Manual = 3
-}
-
-/**
- * Enum for controlling form submission when `ENTER` key is pressed in the autocomplete input field.
- */
-export const enum PreventSubmit {
-    Never = 0,
-    Always = 1,
-    /**
-     * Form submission is prevented only when an item is selected from the autocomplete list.
-     */
-    OnSelect = 2
 }
 
 export interface AutocompleteItem {
@@ -120,9 +108,9 @@ export interface AutocompleteSettings<T extends AutocompleteItem> {
     customize?: (input: HTMLInputElement | HTMLTextAreaElement, inputRect: ClientRect | DOMRect, container: HTMLDivElement, maxHeight: number) => void;
 
     /**
-     * Controls form submission when the ENTER key is pressed in a input field.
+     * Prevents automatic form submit when ENTER is pressed
      */
-    preventSubmit?: PreventSubmit;
+    preventSubmit?: boolean;
 
     /**
      * Prevents the first item in the list from being selected automatically. This option allows you
@@ -148,9 +136,7 @@ export interface AutocompleteResult {
     destroy: () => void;
 
     /**
-     * This function allows to manually start data fetching and display autocomplete. Note that
-     * it does not automatically place focus on the input field, so you may need to do so manually
-     * in certain situations.
+     * Allows to manually start data fetching and display autocomplete.
      */
     fetch: () => void;
 }
@@ -161,11 +147,10 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     const doc = document;
 
     const container: HTMLDivElement = settings.container || doc.createElement('div');
-    const preventSubmit: PreventSubmit = settings.preventSubmit || PreventSubmit.Never;
-
     container.id = container.id || 'autocomplete-' + uid();
     const containerStyle = container.style;
     const debounceWaitMs = settings.debounceWaitMs || 0;
+    const preventSubmit = settings.preventSubmit || false;
     const disableAutoSelect = settings.disableAutoSelect || false;
     const customContainerParent = container.parentElement;
 
@@ -178,9 +163,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     let debounceTimer: number | undefined;
     let destroyed = false;
 
-    // Fixes #104: autocomplete selection is broken on Firefox for Android
-    let suppressAutocomplete = false;
-
     if (settings.minLength !== undefined) {
         minLen = settings.minLength;
     }
@@ -191,7 +173,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
 
     const input: HTMLInputElement | HTMLTextAreaElement = settings.input;
 
-    container.className = [container.className, 'autocomplete', settings.className || ''].join(' ').trim();
+    container.className = 'autocomplete ' + (settings.className || '');
     container.setAttribute('role', 'listbox');
 
     input.setAttribute('role', 'combobox');
@@ -319,7 +301,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
      */
     function update() {
 
-        container.textContent = '';
+        container.innerHTML = '';
         input.setAttribute('aria-activedescendant', '');
 
         // function for rendering autocomplete suggestions
@@ -359,12 +341,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
                 div.id = `${container.id}_${index}`;
                 div.setAttribute('role', 'option');
                 div.addEventListener('click', function (ev: MouseEvent): void {
-                    suppressAutocomplete = true;
-                    try {
-                        settings.onSelect(item, input);
-                    } finally {
-                        suppressAutocomplete = false;
-                    }
+                    settings.onSelect(item, input);
                     clear();
                     ev.preventDefault();
                     ev.stopPropagation();
@@ -417,9 +394,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     }
 
     function inputEventHandler() {
-        if (!suppressAutocomplete) {
-            fetch(EventTrigger.Keyboard);
-        }
+        fetch(EventTrigger.Keyboard);
     }
 
     /**
@@ -454,8 +429,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         selected = index === -1
             ? undefined
             : items[(index + items.length - 1) % items.length];
-
-        updateSelectedSuggestion(index);
     }
 
     function selectNextSuggestion() {
@@ -466,36 +439,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
             : index === -1
                 ? items[0]
                 : items[(index + 1) % items.length];
-
-        updateSelectedSuggestion(index);
-    }
-
-    function updateSelectedSuggestion(index: number) {
-        if (items.length > 0) {
-            unselectSuggestion(index);
-            selectSuggestion(items.indexOf(selected!));
-            updateScroll();
-        }
-    }
-
-    function selectSuggestion(index: number) {
-        var element = doc.getElementById(container.id + "_" + index);
-        console.log(`[AUTOCOMPLETE] select suggestion element with id ${container.id + "_" + index}`, element);
-        if (element) {
-            element.classList.add('selected');
-            element.setAttribute('aria-selected', 'true');
-            input.setAttribute('aria-activedescendant', element.id);
-        }
-    }
-
-    function unselectSuggestion(index: number) {
-        var element = doc.getElementById(container.id + "_" + index);
-        console.log(`[AUTOCOMPLETE] unselect suggestion element with id ${container.id + "_" + index}`, element);
-        if (element) {
-            element.classList.remove('selected');
-            element.removeAttribute('aria-selected');
-            input.removeAttribute('aria-activedescendant');
-        }
     }
 
     function handleArrowAndEscapeKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown' | 'Escape') {
@@ -510,6 +453,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
             key === 'ArrowUp'
                 ? selectPreviousSuggestion()
                 : selectNextSuggestion();
+            update();
         }
 
         ev.preventDefault();
@@ -521,19 +465,11 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
 
     function handleEnterKey(ev: KeyboardEvent) {
         if (selected) {
-            if (preventSubmit === PreventSubmit.OnSelect) {
-                ev.preventDefault();
-            }
-            suppressAutocomplete = true;
-            try {
-                settings.onSelect(selected, input);
-            } finally {
-                suppressAutocomplete = false;
-            }
+            settings.onSelect(selected, input);
             clear();
         }
 
-        if (preventSubmit === PreventSubmit.Always) {
+        if (preventSubmit) {
             ev.preventDefault();
         }
     }
@@ -633,9 +569,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
      * See: https://stackoverflow.com/a/9210267/13172349
      */
     container.addEventListener('focus', () => input.focus());
-
-    // If the custom autocomplete container is already appended to the DOM during widget initialization, detach it.
-    detach();
 
     /**
      * This function will remove DOM elements and clear event handlers

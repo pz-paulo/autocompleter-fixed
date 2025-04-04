@@ -5,10 +5,10 @@
 }(this, (function () { 'use strict';
 
     /**
-     * Copyright (c) 2016 Denis Taran
+     * Copyright (c) 2016 Denys Krasnoshchok
      *
      * Homepage: https://smartscheduling.com/en/documentation/autocomplete
-     * Source: https://github.com/denis-taran/autocomplete
+     * Source: https://github.com/kraaden/autocomplete
      *
      * MIT License
      */
@@ -16,10 +16,10 @@
         // just an alias to minimize JS file size
         var doc = document;
         var container = settings.container || doc.createElement('div');
-        var preventSubmit = settings.preventSubmit || 0 /* Never */;
         container.id = container.id || 'autocomplete-' + uid();
         var containerStyle = container.style;
         var debounceWaitMs = settings.debounceWaitMs || 0;
+        var preventSubmit = settings.preventSubmit || false;
         var disableAutoSelect = settings.disableAutoSelect || false;
         var customContainerParent = container.parentElement;
         var items = [];
@@ -30,8 +30,6 @@
         var fetchCounter = 0;
         var debounceTimer;
         var destroyed = false;
-        // Fixes #104: autocomplete selection is broken on Firefox for Android
-        var suppressAutocomplete = false;
         if (settings.minLength !== undefined) {
             minLen = settings.minLength;
         }
@@ -39,7 +37,7 @@
             throw new Error('input undefined');
         }
         var input = settings.input;
-        container.className = [container.className, 'autocomplete', settings.className || ''].join(' ').trim();
+        container.className = 'autocomplete ' + (settings.className || '');
         container.setAttribute('role', 'listbox');
         input.setAttribute('role', 'combobox');
         input.setAttribute('aria-expanded', 'false');
@@ -143,7 +141,7 @@
          * Redraw the autocomplete div element with suggestions
          */
         function update() {
-            container.textContent = '';
+            container.innerHTML = '';
             input.setAttribute('aria-activedescendant', '');
             // function for rendering autocomplete suggestions
             var render = function (item, _, __) {
@@ -179,13 +177,7 @@
                     div.id = container.id + "_" + index;
                     div.setAttribute('role', 'option');
                     div.addEventListener('click', function (ev) {
-                        suppressAutocomplete = true;
-                        try {
-                            settings.onSelect(item, input);
-                        }
-                        finally {
-                            suppressAutocomplete = false;
-                        }
+                        settings.onSelect(item, input);
                         clear();
                         ev.preventDefault();
                         ev.stopPropagation();
@@ -234,9 +226,7 @@
             }
         }
         function inputEventHandler() {
-            if (!suppressAutocomplete) {
-                fetch(0 /* Keyboard */);
-            }
+            fetch(0 /* Keyboard */);
         }
         /**
          * Automatically move scroll bar if selected item is not visible
@@ -267,7 +257,6 @@
             selected = index === -1
                 ? undefined
                 : items[(index + items.length - 1) % items.length];
-            updateSelectedSuggestion(index);
         }
         function selectNextSuggestion() {
             var index = items.indexOf(selected);
@@ -276,32 +265,6 @@
                 : index === -1
                     ? items[0]
                     : items[(index + 1) % items.length];
-            updateSelectedSuggestion(index);
-        }
-        function updateSelectedSuggestion(index) {
-            if (items.length > 0) {
-                unselectSuggestion(index);
-                selectSuggestion(items.indexOf(selected));
-                updateScroll();
-            }
-        }
-        function selectSuggestion(index) {
-            var element = doc.getElementById(container.id + "_" + index);
-            console.log("[AUTOCOMPLETE] select suggestion element with id " + (container.id + "_" + index), element);
-            if (element) {
-                element.classList.add('selected');
-                element.setAttribute('aria-selected', 'true');
-                input.setAttribute('aria-activedescendant', element.id);
-            }
-        }
-        function unselectSuggestion(index) {
-            var element = doc.getElementById(container.id + "_" + index);
-            console.log("[AUTOCOMPLETE] unselect suggestion element with id " + (container.id + "_" + index), element);
-            if (element) {
-                element.classList.remove('selected');
-                element.removeAttribute('aria-selected');
-                input.removeAttribute('aria-activedescendant');
-            }
         }
         function handleArrowAndEscapeKeys(ev, key) {
             var containerIsDisplayed = containerDisplayed();
@@ -315,6 +278,7 @@
                 key === 'ArrowUp'
                     ? selectPreviousSuggestion()
                     : selectNextSuggestion();
+                update();
             }
             ev.preventDefault();
             if (containerIsDisplayed) {
@@ -323,19 +287,10 @@
         }
         function handleEnterKey(ev) {
             if (selected) {
-                if (preventSubmit === 2 /* OnSelect */) {
-                    ev.preventDefault();
-                }
-                suppressAutocomplete = true;
-                try {
-                    settings.onSelect(selected, input);
-                }
-                finally {
-                    suppressAutocomplete = false;
-                }
+                settings.onSelect(selected, input);
                 clear();
             }
-            if (preventSubmit === 1 /* Always */) {
+            if (preventSubmit) {
                 ev.preventDefault();
             }
         }
@@ -421,8 +376,6 @@
          * See: https://stackoverflow.com/a/9210267/13172349
          */
         container.addEventListener('focus', function () { return input.focus(); });
-        // If the custom autocomplete container is already appended to the DOM during widget initialization, detach it.
-        detach();
         /**
          * This function will remove DOM elements and clear event handlers
          */

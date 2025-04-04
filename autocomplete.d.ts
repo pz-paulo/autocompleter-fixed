@@ -1,8 +1,8 @@
 /**
- * Copyright (c) 2016 Denis Taran
+ * Copyright (c) 2016 Denys Krasnoshchok
  *
  * Homepage: https://smartscheduling.com/en/documentation/autocomplete
- * Source: https://github.com/denis-taran/autocomplete
+ * Source: https://github.com/kraaden/autocomplete
  *
  * MIT License
  */
@@ -14,17 +14,6 @@ export declare const enum EventTrigger {
      * Fetch is triggered manually by calling `fetch` function returned in `AutocompleteResult`
      */
     Manual = 3
-}
-/**
- * Enum for controlling form submission when `ENTER` key is pressed in the autocomplete input field.
- */
-export declare const enum PreventSubmit {
-    Never = 0,
-    Always = 1,
-    /**
-     * Form submission is prevented only when an item is selected from the autocomplete list.
-     */
-    OnSelect = 2
 }
 export interface AutocompleteItem {
     label?: string;
@@ -102,9 +91,9 @@ export interface AutocompleteSettings<T extends AutocompleteItem> {
      */
     customize?: (input: HTMLInputElement | HTMLTextAreaElement, inputRect: ClientRect | DOMRect, container: HTMLDivElement, maxHeight: number) => void;
     /**
-     * Controls form submission when the ENTER key is pressed in a input field.
+     * Prevents automatic form submit when ENTER is pressed
      */
-    preventSubmit?: PreventSubmit;
+    preventSubmit?: boolean;
     /**
      * Prevents the first item in the list from being selected automatically. This option allows you
      * to submit a custom text by pressing ENTER even when autocomplete is displayed.
@@ -125,9 +114,7 @@ export interface AutocompleteResult {
      */
     destroy: () => void;
     /**
-     * This function allows to manually start data fetching and display autocomplete. Note that
-     * it does not automatically place focus on the input field, so you may need to do so manually
-     * in certain situations.
+     * Allows to manually start data fetching and display autocomplete.
      */
     fetch: () => void;
 }
