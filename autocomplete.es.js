@@ -284,6 +284,7 @@ function autocomplete(settings) {
     }
     function selectSuggestion(index) {
         var element = doc.getElementById(container.id + "_" + index);
+        console.log("[AUTOCOMPLETE] select suggestion element with id " + (container.id + "_" + index), element);
         if (element) {
             element.classList.add('selected');
             element.setAttribute('aria-selected', 'true');

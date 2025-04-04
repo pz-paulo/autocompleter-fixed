@@ -483,6 +483,7 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
 
     function selectSuggestion(index: number) {
         var element = doc.getElementById(container.id + "_" + index);
+        console.log(`[AUTOCOMPLETE] select suggestion element with id ${container.id + "_" + index}`, element);
         if (element) {
             element.classList.add('selected');
             element.setAttribute('aria-selected', 'true');
@@ -501,8 +502,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
 
     function handleArrowUpAndDownKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown')
     {
-
-
         const containerIsDisplayed = containerDisplayed();
 
         if (!containerIsDisplayed || items.length < 1) {
