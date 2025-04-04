@@ -137,7 +137,6 @@ function autocomplete(settings) {
      * Redraw the autocomplete div element with suggestions
      */
     function update() {
-        console.log("[AUTOCOMPLETE] update suggestions div");
         container.textContent = '';
         input.setAttribute('aria-activedescendant', '');
         // function for rendering autocomplete suggestions
@@ -160,7 +159,6 @@ function autocomplete(settings) {
         }
         var fragment = doc.createDocumentFragment();
         var prevGroup = uid();
-        console.log("[AUTOCOMPLETE] selected", selected);
         items.forEach(function (item, index) {
             if (item.group && item.group !== prevGroup) {
                 prevGroup = item.group;
@@ -186,7 +184,6 @@ function autocomplete(settings) {
                     ev.preventDefault();
                     ev.stopPropagation();
                 });
-                console.log("[AUTOCOMPLETE] item is selected " + (item === selected), item);
                 if (item === selected) {
                     div.className += ' selected';
                     div.setAttribute('aria-selected', 'true');
@@ -293,27 +290,30 @@ function autocomplete(settings) {
     }
     function unselectSuggestion(index) {
         var element = doc.getElementById(container.id + "_" + index);
+        console.log("[AUTOCOMPLETE] unselect suggestion element with id " + (container.id + "_" + index), element);
         if (element) {
             element.classList.remove('selected');
             element.removeAttribute('aria-selected');
             input.removeAttribute('aria-activedescendant');
         }
     }
-    function handleArrowUpAndDownKeys(ev, key) {
+    function handleArrowAndEscapeKeys(ev, key) {
         var containerIsDisplayed = containerDisplayed();
-        if (!containerIsDisplayed || items.length < 1) {
-            return;
+        if (key === 'Escape') {
+            clear();
         }
-        key === 'ArrowUp'
-            ? selectPreviousSuggestion()
-            : selectNextSuggestion();
+        else {
+            if (!containerIsDisplayed || items.length < 1) {
+                return;
+            }
+            key === 'ArrowUp'
+                ? selectPreviousSuggestion()
+                : selectNextSuggestion();
+        }
         ev.preventDefault();
         if (containerIsDisplayed) {
             ev.stopPropagation();
         }
-        console.log("[AUTOCOMPLETE] key pressed: " + key + " eventKey: " + ev.key);
-        console.log("[AUTOCOMPLETE] items:", items);
-        console.log("[AUTOCOMPLETE] selected:", selected);
     }
     function handleEnterKey(ev) {
         if (selected) {
@@ -338,11 +338,8 @@ function autocomplete(settings) {
         switch (key) {
             case 'ArrowUp':
             case 'ArrowDown':
-                handleArrowUpAndDownKeys(ev, key);
-                break;
             case 'Escape':
-            case 'Tab':
-                clear();
+                handleArrowAndEscapeKeys(ev, key);
                 break;
             case 'Enter':
                 handleEnterKey(ev);
@@ -394,6 +391,15 @@ function autocomplete(settings) {
             fetch: function () { return fetch(2 /* Mouse */); }
         });
     }
+    function blurEventHandler() {
+        // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
+        // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
+        setTimeout(function () {
+            if (doc.activeElement !== input) {
+                clear();
+            }
+        }, 200);
+    }
     function manualFetch() {
         startFetch(input.value, 3 /* Manual */, input.selectionStart || 0);
     }
@@ -420,6 +426,7 @@ function autocomplete(settings) {
         input.removeEventListener('click', clickEventHandler);
         input.removeEventListener('keydown', keydownEventHandler);
         input.removeEventListener('input', inputEventHandler);
+        input.removeEventListener('blur', blurEventHandler);
         window.removeEventListener('resize', resizeEventHandler);
         doc.removeEventListener('scroll', scrollEventHandler, true);
         input.removeAttribute('role');
@@ -438,6 +445,7 @@ function autocomplete(settings) {
     input.addEventListener('click', clickEventHandler);
     input.addEventListener('keydown', keydownEventHandler);
     input.addEventListener('input', inputEventHandler);
+    input.addEventListener('blur', blurEventHandler);
     input.addEventListener('focus', focusEventHandler);
     window.addEventListener('resize', resizeEventHandler);
     doc.addEventListener('scroll', scrollEventHandler, true);
