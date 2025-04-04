@@ -441,20 +441,16 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
                 : items[(index + 1) % items.length];
     }
 
-    function handleArrowAndEscapeKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown' | 'Escape') {
+    function handleArrowKeys(ev: KeyboardEvent, key: 'ArrowUp' | 'ArrowDown') {
         const containerIsDisplayed = containerDisplayed();
 
-        if (key === 'Escape') {
-            clear();
-        } else {
-            if (!containerIsDisplayed || items.length < 1) {
-                return;
-            }
-            key === 'ArrowUp'
-                ? selectPreviousSuggestion()
-                : selectNextSuggestion();
-            update();
+        if (!containerIsDisplayed || items.length < 1) {
+            return;
         }
+        key === 'ArrowUp'
+            ? selectPreviousSuggestion()
+            : selectNextSuggestion();
+        update();
 
         ev.preventDefault();
 
@@ -480,8 +476,11 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         switch (key) {
             case 'ArrowUp':
             case 'ArrowDown':
+                handleArrowKeys(ev, key);
+                break;
             case 'Escape':
-                handleArrowAndEscapeKeys(ev, key);
+            case 'Tab':
+                clear();
                 break;
             case 'Enter':
                 handleEnterKey(ev);
@@ -542,16 +541,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         });
     }
 
-    function blurEventHandler() {
-        // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
-        // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
-        setTimeout(() => {
-            if (doc.activeElement !== input) {
-                clear();
-            }
-        }, 200);
-    }
-
     function manualFetch() {
         startFetch(input.value, EventTrigger.Manual, input.selectionStart || 0);
     }
@@ -579,7 +568,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
         input.removeEventListener('click', clickEventHandler as EventListenerOrEventListenerObject)
         input.removeEventListener('keydown', keydownEventHandler as EventListenerOrEventListenerObject);
         input.removeEventListener('input', inputEventHandler as EventListenerOrEventListenerObject);
-        input.removeEventListener('blur', blurEventHandler);
         window.removeEventListener('resize', resizeEventHandler);
         doc.removeEventListener('scroll', scrollEventHandler, true);
         input.removeAttribute('role');
@@ -599,7 +587,6 @@ export default function autocomplete<T extends AutocompleteItem>(settings: Autoc
     input.addEventListener('click', clickEventHandler as EventListenerOrEventListenerObject);
     input.addEventListener('keydown', keydownEventHandler as EventListenerOrEventListenerObject);
     input.addEventListener('input', inputEventHandler as EventListenerOrEventListenerObject);
-    input.addEventListener('blur', blurEventHandler);
     input.addEventListener('focus', focusEventHandler);
     window.addEventListener('resize', resizeEventHandler);
     doc.addEventListener('scroll', scrollEventHandler, true);

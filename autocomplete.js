@@ -266,20 +266,15 @@
                     ? items[0]
                     : items[(index + 1) % items.length];
         }
-        function handleArrowAndEscapeKeys(ev, key) {
+        function handleArrowKeys(ev, key) {
             var containerIsDisplayed = containerDisplayed();
-            if (key === 'Escape') {
-                clear();
+            if (!containerIsDisplayed || items.length < 1) {
+                return;
             }
-            else {
-                if (!containerIsDisplayed || items.length < 1) {
-                    return;
-                }
-                key === 'ArrowUp'
-                    ? selectPreviousSuggestion()
-                    : selectNextSuggestion();
-                update();
-            }
+            key === 'ArrowUp'
+                ? selectPreviousSuggestion()
+                : selectNextSuggestion();
+            update();
             ev.preventDefault();
             if (containerIsDisplayed) {
                 ev.stopPropagation();
@@ -299,8 +294,11 @@
             switch (key) {
                 case 'ArrowUp':
                 case 'ArrowDown':
+                    handleArrowKeys(ev, key);
+                    break;
                 case 'Escape':
-                    handleArrowAndEscapeKeys(ev, key);
+                case 'Tab':
+                    clear();
                     break;
                 case 'Enter':
                     handleEnterKey(ev);
@@ -352,15 +350,6 @@
                 fetch: function () { return fetch(2 /* Mouse */); }
             });
         }
-        function blurEventHandler() {
-            // when an item is selected by mouse click, the blur event will be initiated before the click event and remove DOM elements,
-            // so that the click event will never be triggered. In order to avoid this issue, DOM removal should be delayed.
-            setTimeout(function () {
-                if (doc.activeElement !== input) {
-                    clear();
-                }
-            }, 200);
-        }
         function manualFetch() {
             startFetch(input.value, 3 /* Manual */, input.selectionStart || 0);
         }
@@ -385,7 +374,6 @@
             input.removeEventListener('click', clickEventHandler);
             input.removeEventListener('keydown', keydownEventHandler);
             input.removeEventListener('input', inputEventHandler);
-            input.removeEventListener('blur', blurEventHandler);
             window.removeEventListener('resize', resizeEventHandler);
             doc.removeEventListener('scroll', scrollEventHandler, true);
             input.removeAttribute('role');
@@ -404,7 +392,6 @@
         input.addEventListener('click', clickEventHandler);
         input.addEventListener('keydown', keydownEventHandler);
         input.addEventListener('input', inputEventHandler);
-        input.addEventListener('blur', blurEventHandler);
         input.addEventListener('focus', focusEventHandler);
         window.addEventListener('resize', resizeEventHandler);
         doc.addEventListener('scroll', scrollEventHandler, true);
